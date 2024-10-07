@@ -18,7 +18,7 @@ export class HealthCheckService {
     @Inject('Notifier') private readonly notifier: INotifier,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_HOUR)
   async checkWebsites(): Promise<void> {
     const websites = process.env.WEBSITES.split('|');
 
