@@ -1,9 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { TelegramService } from '../telegram/telegram.service';
 import * as process from 'node:process';
+import {
+  INotifier,
+  NotificationTypeEnum,
+} from '../notifier/notifier.interface';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class HealthCheckService {
@@ -12,7 +15,7 @@ export class HealthCheckService {
 
   constructor(
     private readonly httpService: HttpService,
-    private readonly telegramService: TelegramService,
+    @Inject('Notifier') private readonly notifier: INotifier,
   ) {}
 
   @Cron(CronExpression.EVERY_5_SECONDS)
@@ -29,11 +32,17 @@ export class HealthCheckService {
         if (response.status === 200) {
           this.logger.log(`Сайт ${website} доступен`);
         } else {
-          await this.telegramService.sendAlert(website, response.status);
+          await this.notifier.sendNotification(
+            website,
+            NotificationTypeEnum.ALERT,
+          );
         }
       } catch (error) {
         this.logger.error(`Сайт ${website} недоступен: ${error.message}`);
-        await this.telegramService.sendAlert(website, error.response?.status);
+        await this.notifier.sendNotification(
+          website,
+          NotificationTypeEnum.ALERT,
+        );
       }
     }
   }

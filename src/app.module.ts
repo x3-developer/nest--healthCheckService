@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { HealthCheckModule } from './health-check/health-check.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { TelegramModule } from './telegram/telegram.module';
 import { ConfigModule } from '@nestjs/config';
+import { NotifierModule } from './notifier/notifier.module';
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     ScheduleModule.forRoot(),
     HealthCheckModule,
-    TelegramModule,
+    NotifierModule,
   ],
 })
 export class AppModule {}
