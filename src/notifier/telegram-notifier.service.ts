@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as TelegramBot from 'node-telegram-bot-api';
-import { INotifier, NotificationTypeEnum } from './notifier.interface';
+import { INotifier, NotificationTypeEnum } from './types';
 
 @Injectable()
 export class TelegramNotifierService implements INotifier {
@@ -17,13 +17,11 @@ export class TelegramNotifierService implements INotifier {
 
     switch (notificationType) {
       case NotificationTypeEnum.ALERT:
-        message = `Сайт ${site} упал!`;
+        message = `⚠️ Сайт ${site} упал!`;
         break;
       case NotificationTypeEnum.CALM:
-        message = `Сайт ${site} снова работает!`;
+        message = `✅ Сайт ${site} поднялся!`;
         break;
-      default:
-        throw new Error('Неизвестный тип уведомления');
     }
 
     try {

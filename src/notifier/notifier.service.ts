@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { INotifier, NotificationTypeEnum } from './notifier.interface';
+import { INotifier, NotificationTypeEnum } from './types';
 
 @Injectable()
 export class NotifierService implements INotifier {

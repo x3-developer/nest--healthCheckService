@@ -1,12 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import * as process from 'node:process';
-import {
-  INotifier,
-  NotificationTypeEnum,
-} from '../notifier/notifier.interface';
+import { INotifier, NotificationTypeEnum } from '../notifier/types';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { FileSystemService } from '../file-system/file-system.service';
 
 @Injectable()
 export class HealthCheckService {
@@ -16,33 +13,50 @@ export class HealthCheckService {
   constructor(
     private readonly httpService: HttpService,
     @Inject('Notifier') private readonly notifier: INotifier,
+    private readonly fileSystemService: FileSystemService,
   ) {}
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async checkWebsites(): Promise<void> {
-    const websites = process.env.WEBSITES.split('|');
+    const websites = await this.fileSystemService.getSitesData();
 
     for (const website of websites) {
       try {
         const response = await firstValueFrom(
-          this.httpService.get(website, {
+          this.httpService.get(website.url, {
             timeout: this.timeout,
           }),
         );
         if (response.status === 200) {
-          this.logger.log(`Сайт ${website} доступен`);
+          if (!website.isActive) {
+            await this.fileSystemService.changeSiteStatus(website, true);
+
+            await this.notifier.sendNotification(
+              website.url,
+              NotificationTypeEnum.CALM,
+            );
+          }
         } else {
-          await this.notifier.sendNotification(
-            website,
-            NotificationTypeEnum.ALERT,
-          );
+          if (website.isActive) {
+            await this.fileSystemService.changeSiteStatus(website, false);
+
+            await this.notifier.sendNotification(
+              website.url,
+              NotificationTypeEnum.ALERT,
+            );
+          }
         }
       } catch (error) {
         this.logger.error(`Сайт ${website} недоступен: ${error.message}`);
-        await this.notifier.sendNotification(
-          website,
-          NotificationTypeEnum.ALERT,
-        );
+
+        if (website.isActive) {
+          await this.fileSystemService.changeSiteStatus(website, false);
+
+          await this.notifier.sendNotification(
+            website.url,
+            NotificationTypeEnum.ALERT,
+          );
+        }
       }
     }
   }

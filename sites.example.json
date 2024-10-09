@@ -1,0 +1,10 @@
+[
+  {
+    "url": "https://example1.ru",
+    "isActive": true
+  },
+  {
+    "url": "https://example2.com",
+    "isActive": true
+  }
+]
