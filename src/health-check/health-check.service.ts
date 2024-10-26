@@ -8,7 +8,7 @@ import { FileSystemService } from '../file-system/file-system.service';
 @Injectable()
 export class HealthCheckService {
   private readonly logger = new Logger(HealthCheckService.name);
-  private readonly timeout = 5000;
+  private readonly timeout = 30000;
 
   constructor(
     private readonly httpService: HttpService,
